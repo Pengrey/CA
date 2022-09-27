@@ -47,7 +47,7 @@ func main() {
 	onlyLetterText := toReplace.ReplaceAllString(nonAccentText, "")
 
 	// Convert all to lowercase
-	result := strings.ToLower(onlyLetterText) + "\n"
+	result := strings.ToLower(onlyLetterText)
 
 	// Print result
 	// fmt.Print(result)

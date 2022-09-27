@@ -1,4 +1,4 @@
-module hello.go
+module prep.go
 
 go 1.18
 
