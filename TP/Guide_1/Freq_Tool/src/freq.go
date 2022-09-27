@@ -81,7 +81,9 @@ func main() {
 	})
 
 	// Print results
-	fmt.Println("| Letter | Count | Percen | Graph")
+	fmt.Println("+--------+-------+--------+------------------------------------------------------------------------------------------------------+")
+	fmt.Println("| Letter | Count | Percen | Graph                                                                                                |")
+	fmt.Println("+--------+-------+--------+------------------------------------------------------------------------------------------------------+")
 	for _, k := range keys {
 		percentage := float32(result[[]rune(k)[0]]) / float32(totalCount) * 100
 		graph := ""
@@ -90,11 +92,12 @@ func main() {
 		}
 
 		if int(percentage/10) < 1 {
-			fmt.Printf("| %6v | %5d | 0%.2f %%| %s\n", k, result[[]rune(k)[0]], percentage, graph)
+			fmt.Printf("| %6v | %5d | 0%.2f %%| %-100s |\n", k, result[[]rune(k)[0]], percentage, graph)
 		} else {
-			fmt.Printf("| %6v | %5d | %.2f %%| %s\n", k, result[[]rune(k)[0]], percentage, graph)
+			fmt.Printf("| %6v | %5d | %.2f %%| %-100s |\n", k, result[[]rune(k)[0]], percentage, graph)
 		}
 	}
+	fmt.Println("+--------+-------+--------+------------------------------------------------------------------------------------------------------+")
 
 	// calculate to exe time
 	fmt.Printf("\nFile analysed in %s\n", time.Since(start))
