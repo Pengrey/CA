@@ -4,8 +4,10 @@ package main
 import (
 	"fmt"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -13,6 +15,41 @@ func check(e error) {
 	if e != nil {
 		panic(e)
 	}
+}
+
+// FreqMap records the frequency of each rune in a given text.
+type FreqMap map[rune]int
+
+// Frequency counts the frequency of each rune in a given text and returns this
+// data as a FreqMap.
+func Frequency(s string) FreqMap {
+	m := FreqMap{}
+	for _, r := range s {
+		m[r]++
+	}
+	return m
+}
+func ConcurrentFrequency(texts []string) FreqMap {
+	res := make(FreqMap)
+	ch := make(chan FreqMap, 10)
+	var wg sync.WaitGroup
+	wg.Add(len(texts))
+	for _, text := range texts {
+		go func(t string) {
+			ch <- Frequency(t)
+			wg.Done()
+		}(text)
+	}
+	go func() {
+		wg.Wait()
+		close(ch)
+	}()
+	for freqmap := range ch {
+		for letter, freq := range freqmap {
+			res[letter] += freq
+		}
+	}
+	return res
 }
 
 func sum(array []float32) float32 {
@@ -25,72 +62,53 @@ func sum(array []float32) float32 {
 
 // Get frequency of letters in text
 func get_freq(cyphertext string, keyLength int) {
-	var stringSlices []string
-	totalLettersAdded := 0
-	var lettersCounted = map[string]int{
-		"a": 0,
-		"b": 0,
-		"c": 0,
-		"d": 0,
-		"e": 0,
-		"f": 0,
-		"g": 0,
-		"h": 0,
-		"i": 0,
-		"j": 0,
-		"k": 0,
-		"l": 0,
-		"m": 0,
-		"n": 0,
-		"o": 0,
-		"p": 0,
-		"q": 0,
-		"r": 0,
-		"s": 0,
-		"t": 0,
-		"u": 0,
-		"v": 0,
-		"w": 0,
-		"x": 0,
-		"y": 0,
-		"z": 0,
+
+	// Prepare slice
+	slice := ""
+	for j := 0; j < len(cyphertext); {
+		slice += string(cyphertext[j])
+
+		j += keyLength
 	}
 
-	// Prepare segments with key length
-	for i := 0; i+keyLength < len(cyphertext); {
-		stringSlices = append(stringSlices, cyphertext[i:i+keyLength])
-		i += keyLength
+	// Calculate letter frequency in slice
+	result := ConcurrentFrequency(strings.Split(slice, ""))
+
+	// Sort results
+	keys := make([]string, 0, len(result))
+
+	// Total number of letters
+	totalCount := 0
+
+	// Copy map for sort and count number of letters present
+	for key := range result {
+		keys = append(keys, string(key))
+		totalCount += result[key]
 	}
 
-	// Check letter frequency in each slice
-	for _, word := range stringSlices {
-		// Prevent repeated analyses on the same slice
-		analysedLetters := ""
-		mostFrequent := ""
+	// Sort by descending order
+	sort.SliceStable(keys, func(i, j int) bool {
+		return result[[]rune(keys[i])[0]] > result[[]rune(keys[j])[0]]
+	})
 
-		for _, letter := range word {
-			char := string(letter)
-			// Skip repeated letters
-			if strings.Contains(analysedLetters, char) {
-				continue
-			}
-
-			if mostFrequent == "" || float32(strings.Count(word, char)) > float32(strings.Count(word, mostFrequent)) {
-				mostFrequent = char
-			}
-
-			analysedLetters += char
+	// Print results
+	fmt.Println("+--------+-------+--------+------------------------------------------------------------------------------------------------------+")
+	fmt.Println("| Letter | Count | Percen | Graph                                                                                                |")
+	fmt.Println("+--------+-------+--------+------------------------------------------------------------------------------------------------------+")
+	for _, k := range keys {
+		percentage := float32(result[[]rune(k)[0]]) / float32(totalCount) * 100
+		graph := ""
+		for i := 0; int(percentage) > i; i++ {
+			graph += "="
 		}
 
-		// Add frequency to map
-		lettersCounted[mostFrequent] += 1
-		totalLettersAdded += 1
+		if int(percentage/10) < 1 {
+			fmt.Printf("| %6v | %5d | 0%.2f %%| %-100s |\n", k, result[[]rune(k)[0]], percentage, graph)
+		} else {
+			fmt.Printf("| %6v | %5d | %.2f %%| %-100s |\n", k, result[[]rune(k)[0]], percentage, graph)
+		}
 	}
-
-	// Get average letter frequency for each letter
-	for key, val := range lettersCounted {
-		fmt.Println(key, (float32(val)/float32(totalLettersAdded))*100, "%")
-	}
+	fmt.Println("+--------+-------+--------+------------------------------------------------------------------------------------------------------+")
 }
 
 func main() {
