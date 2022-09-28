@@ -102,16 +102,17 @@ func get_freq(cyphertext string, keyLength int) {
 		}
 
 		// Get average shift
-		for index, letter := range cypheredLetters[:3] {
+		equalPeaks := 3
+		for index, letter := range cypheredLetters[:equalPeaks] {
 			totalShift += []rune(letter)[0] - commonLetters[index]
 		}
 
-		avgShift := int(totalShift / int32(len(cypheredLetters[:3])))
+		avgShift := int(totalShift / int32(len(cypheredLetters[:equalPeaks])))
 
-		if avgShift < 0 {
-			fmt.Print(string(alphabetLetters[-avgShift]))
+		if avgShift <= 0 {
+			fmt.Print(string(alphabetLetters[len(alphabetLetters)+avgShift-1]))
 		} else {
-			fmt.Print(string(alphabetLetters[avgShift+1]))
+			fmt.Print(string(alphabetLetters[avgShift]))
 		}
 	}
 }
