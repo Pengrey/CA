@@ -8,22 +8,26 @@ typedef unsigned char uint8_t;
 
 static int get_rand_int(int n, unsigned char seed[]) {
     int result = 0;
+    char tmp[3];
 
     SHA256(seed, strlen(seed), seed);
-    
-    for(int i = 0 ; i < 64 ; i++){
-        result += (int) seed[i]; 
+
+    // Iterate Chars
+    for(int j = 0; j < SHA256_DIGEST_LENGTH; j ++){
+	    sprintf(tmp, "%02hhX", seed[j]);
+        result += ((int) tmp[0] + (int) tmp[1]);
+        printf(tmp, "%02hhX", seed[j]);
     }
 
     return (result + n) % 256;
 }
 
 // Fisher-Yates shuffle Algorithm
-void shuffle(uint8_t *array, int n, unsigned char seed[]) {
+void shuffle(uint8_t *array, unsigned char seed[]) {
     int i, j;
     uint8_t tmp;
  
-    for (i = n - 1; i > 0; i--) {
+    for (i = 255 ; i > 0; i--) {
         j = get_rand_int(i + 1, seed);
         tmp = array[j];
         array[j] = array[i];
@@ -33,7 +37,7 @@ void shuffle(uint8_t *array, int n, unsigned char seed[]) {
 
 void generate_SBox(uint8_t SBox[16][256], unsigned char seed[]){
     for (int  i = 0 ; i < 16 ; i++){
-        shuffle(SBox[i], 256, seed);
+        shuffle(SBox[i], seed);
     }
 }
 
@@ -59,7 +63,9 @@ int main(void)
     };
 
     unsigned char seed[] = "59366c43112e404e63ac8a0a7bcdfc22e20aaa3e04f26cc4d7587185c18cae9d";
-    
+    printf("R: %d\n", get_rand_int(0, seed));
+    printf("R: %d\n", get_rand_int(0, seed));
+    /*
     generate_SBox(SBox, seed);
 
     printf("\nSBoxes Generated:\n");
@@ -70,6 +76,6 @@ int main(void)
         }
         printf("\n}\n\n");
     }
-
+    */
     return 0;
 }
