@@ -102,7 +102,7 @@ int main() {
     }
 
     // Apply permutations
-    printf("\n[!] Permutating\n");
+    printf("\n[*] Permutating\n");
     for( int i = 0 ; i < NUM_ITERATIONS; i += 1 ){
         feistalIter(firstSlice, secondSlice, SBoxes[i]);
     }
@@ -119,7 +119,7 @@ int main() {
     printf("\n");
 
     // Decipher
-    printf("[!] Unwinding\n");
+    printf("[*] Unwinding\n");
     for( int i = NUM_ITERATIONS - 1 ; i >= 0; i -= 1 ){
         feistalIter(secondSlice, firstSlice, SBoxes[i]);
     }

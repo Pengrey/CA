@@ -98,7 +98,7 @@ func main() {
 	}
 
 	// Apply permutations
-	fmt.Printf("\n[!] Permutating\n")
+	fmt.Printf("\n[*] Permutating\n")
 	for i := 0; i < NUM_ITERATIONS; i++ {
 		firstSlice, secondSlice = feistalIter(firstSlice, secondSlice, SBoxes[i])
 	}
@@ -115,7 +115,7 @@ func main() {
 	fmt.Printf("\n")
 
 	// Decipher
-	fmt.Printf("[!] Unwinding\n")
+	fmt.Printf("[*] Unwinding\n")
 	for i := NUM_ITERATIONS - 1; i >= 0; i-- {
 		secondSlice, firstSlice = feistalIter(secondSlice, firstSlice, SBoxes[i])
 	}
