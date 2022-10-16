@@ -1,7 +1,7 @@
 import argparse
-from cryptography . hazmat . primitives import hashes
-from cryptography . hazmat . primitives . kdf . pbkdf2 import PBKDF2HMAC
-from cryptography . hazmat . backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
+from cryptography.hazmat.backends import default_backend
 
 def generate(pwd, outFile):
     # The PBKDF2 generator of Python receives as input the number of bytes to generate , instead of bits
