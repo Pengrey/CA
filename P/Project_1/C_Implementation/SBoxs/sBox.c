@@ -9,6 +9,7 @@ typedef unsigned char uint8_t;
 static int get_rand_int(int n, unsigned char seed[]) {
     int result = 0;
     char tmp[3];
+    char tmp2[65];
 
     SHA256(seed, strlen(seed), seed);
 
@@ -16,9 +17,11 @@ static int get_rand_int(int n, unsigned char seed[]) {
     for(int j = 0; j < SHA256_DIGEST_LENGTH; j ++){
 	    sprintf(tmp, "%02hhX", seed[j]);
         result += ((int) tmp[0] + (int) tmp[1]);
-        printf(tmp, "%02hhX", seed[j]);
+        tmp2[2*j] = tmp[0];
+        tmp2[2*j + 1] = tmp[1];
     }
-
+    tmp2[64] = 0;
+    strcpy(seed, tmp2);
     return (result + n) % 256;
 }
 
@@ -63,9 +66,7 @@ int main(void)
     };
 
     unsigned char seed[] = "59366c43112e404e63ac8a0a7bcdfc22e20aaa3e04f26cc4d7587185c18cae9d";
-    printf("R: %d\n", get_rand_int(0, seed));
-    printf("R: %d\n", get_rand_int(0, seed));
-    /*
+    
     generate_SBox(SBox, seed);
 
     printf("\nSBoxes Generated:\n");
@@ -76,6 +77,6 @@ int main(void)
         }
         printf("\n}\n\n");
     }
-    */
+    
     return 0;
 }
