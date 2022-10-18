@@ -38,9 +38,28 @@ void shuffle(uint8_t *array, unsigned char seed[]) {
    }
 }
 
-void generate_SBox(uint8_t SBox[16][256], unsigned char seed[]){
+void generate_Seeds(unsigned char seeds[16][66], unsigned char seed[]) {
+    char salts[] = "abcdefghijklmnop";
+
     for (int  i = 0 ; i < 16 ; i++){
-        shuffle(SBox[i], seed);
+        strcpy(seeds[i], seed);
+        seeds[i][64] = salts[i];
+        seeds[i][66] = 0;
+    }
+}
+
+void generate_SBox(uint8_t SBox[16][256], unsigned char seed[]){
+    unsigned char seeds[16][66]; 
+    
+    generate_Seeds(seeds, seed);
+
+    for (int  i = 0 ; i < 16 ; i++){
+        printf("SEEDS:\n");
+        for (int  j = 0 ; j < 65 ; j++){
+            printf("%c", seeds[i][j]);
+        }
+        printf("\n");
+        shuffle(SBox[i], seeds[i]);
     }
 }
 
