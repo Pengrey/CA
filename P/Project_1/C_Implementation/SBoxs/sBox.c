@@ -54,11 +54,6 @@ void generate_SBox(uint8_t SBox[16][256], unsigned char seed[]){
     generate_Seeds(seeds, seed);
 
     for (int  i = 0 ; i < 16 ; i++){
-        printf("SEEDS:\n");
-        for (int  j = 0 ; j < 65 ; j++){
-            printf("%c", seeds[i][j]);
-        }
-        printf("\n");
         shuffle(SBox[i], seeds[i]);
     }
 }

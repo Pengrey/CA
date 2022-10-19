@@ -2,5 +2,5 @@
 
 ### To run the code execute the following
 ```bash
-
+go run sBox.go
 ```

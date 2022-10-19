@@ -50,11 +50,6 @@ func generate_SBoxes(SBox [16][256]uint8, seed string) [16][256]uint8 {
 	seeds := generate_Seeds(seed)
 
 	for i := 0; i < 16; i++ {
-		fmt.Print("SEEDS:\n")
-		for j := 0; j < 65; j++ {
-			fmt.Printf("%c", seeds[i][j])
-		}
-		fmt.Print("\n")
 		SBox[i], _ = shuffle(SBox[i], 256, []byte(seeds[i]))
 	}
 
