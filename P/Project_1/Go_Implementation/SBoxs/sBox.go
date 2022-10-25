@@ -1,48 +1,55 @@
 package main
 
 import (
-	"crypto/sha256"
-	"encoding/hex"
 	"fmt"
-	"strings"
 )
 
-func get_rand_int(n int, seed []byte) (int, []byte) {
-	var result = 0
+func getNextInt(seed int) int {
+	n1 := (int)(seed/10) % 10
+	n2 := (int)(seed/100) % 10
+	n3 := (int)(seed/1000) % 10
+	n4 := (int)(seed/10000) % 10
+	n5 := (int)(seed/100000) % 10
 
-	newSeed := sha256.Sum256(seed)
-	hexSeed := []rune(strings.ToUpper(hex.EncodeToString(newSeed[:])))
-
-	for i := 0; i < 64; i++ {
-		result = result + int(hexSeed[i])
-	}
-
-	return (result + n) % 256, []byte(strings.ToUpper(hex.EncodeToString(newSeed[:])))
+	return ((n1*n3*n4+n1*n2+n2*n3+n3*n4+n1+n2)*seed + n5) % 99999
 }
 
 // Fisher-Yates shuffle Algorithm
-func shuffle(array [256]uint8, n int, seed []byte) ([256]uint8, []byte) {
+func shuffle(array [256]uint8, seed int) [256]uint8 {
 	var i, j int
 	var tmp uint8
 
-	for i = n - 1; i > 0; i-- {
-		j, seed = get_rand_int(i+1, seed)
+	for i = 255; i > 0; i-- {
+		seed = getNextInt(seed)
+		j = seed % 256
 		tmp = array[j]
 		array[j] = array[i]
 		array[i] = tmp
 	}
 
-	return array, seed
+	return array
 }
 
-func generate_Seeds(seed string) [16][]byte {
-	var seeds [16][]byte
+func stringToInt(seed string) int {
+	result := 0
+	charArray := []rune(seed)
 
-	salts := "abcdefghijklmnop"
+	for i := 0; i < len(seed); i++ {
+		result += int(charArray[i]) * (i + 1)
+	}
+
+	return result % 99999
+}
+
+func generate_Seeds(seed string) [16]int {
+	stringInt := stringToInt(seed)
+
+	var seeds [16]int
 
 	for i := 0; i < 16; i++ {
-		seeds[i] = []byte(seed + string(salts[i]))
+		seeds[i] = ((i + 2) * stringInt) % 99999
 	}
+
 	return seeds
 }
 
@@ -50,7 +57,7 @@ func generate_SBoxes(SBox [16][256]uint8, seed string) [16][256]uint8 {
 	seeds := generate_Seeds(seed)
 
 	for i := 0; i < 16; i++ {
-		SBox[i], _ = shuffle(SBox[i], 256, []byte(seeds[i]))
+		SBox[i] = shuffle(SBox[i], seeds[i])
 	}
 
 	return SBox
