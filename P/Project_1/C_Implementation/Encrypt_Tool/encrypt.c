@@ -160,17 +160,6 @@ void applyPermutations(uint8_t firstSlice[4], uint8_t secondSlice[4], uint8_t SB
     }
 }
 
-void reversePermutations(uint8_t firstSlice[4], uint8_t secondSlice[4], uint8_t SBox[16][256])
-{
-    int NUM_ITERATIONS = 16;
-
-    // Decipher
-    // printf("[*] Unwinding\n");
-    for( int i = NUM_ITERATIONS - 1 ; i >= 0; i -= 1 ){
-        feistalIter(secondSlice, firstSlice, SBox[i]);
-    }
-}
-
 void getCipherBlock(uint8_t firstSlice[4], uint8_t secondSlice[4], uint8_t SBox[16][256])
 {
     // printf("[*] Applying Permutations\n");
@@ -179,11 +168,11 @@ void getCipherBlock(uint8_t firstSlice[4], uint8_t secondSlice[4], uint8_t SBox[
     // Print Ciphertext
     // printf("[!] Result:");
     for( int i = 0 ; i < 4; i += 1 ){
-        printf("%x",firstSlice[i]);
+        printf("%c",firstSlice[i]);
     }
 
     for( int i = 0 ; i < 4; i += 1 ){
-        printf("%x",secondSlice[i]);
+        printf("%c",secondSlice[i]);
     }
 }
 
@@ -227,7 +216,7 @@ void getCiphertext(uint8_t SBox[16][256])
         int needed = 8 - charIndex;
 
         // PKCS#7 padding
-        for (int i = 7 ; i == charIndex ; i--){
+        for (int i = 7 ; i >= charIndex ; i--){
             if (i < 4){
                 firstSlice[i] = (uint8_t) needed;
             }else{
