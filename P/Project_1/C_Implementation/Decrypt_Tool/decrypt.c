@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <openssl/sha.h>
+#include <nettle/des.h>
 
 typedef unsigned char uint8_t;
 
@@ -229,9 +230,51 @@ void getCiphertext(uint8_t SBox[16][256])
     }
 }
 
-void getDESCipher()
+void getDESBlock(uint8_t key[8], uint8_t data[8]) {
+    struct des_ctx ctx;
+
+    des_set_key(&ctx, key);
+    
+    des_decrypt(&ctx, 8, data, data);
+}
+
+void getDESCipher(uint8_t key[8])
 {
-    printf("[!] Using DES\n");
+    //printf("[!] Using DES\n");
+
+    uint8_t data[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+    char c;
+    int charIndex = 0;
+
+    while ( (c=getchar()) != EOF ){
+        // Save input in data
+        data[charIndex] = (uint8_t) c;
+
+        charIndex++;
+    // When we have full block we cipher them and we reset the clock
+        if (charIndex == 8) {
+            getDESBlock(key, data);
+
+            if ( (c=getchar()) != EOF ){
+
+                ungetc(c, stdin);
+
+                for (int i = 0; i < 8; i++) {
+                    printf("%c", data[i]);
+                }
+            } else {
+                uint8_t padding = data[7];
+
+                if (padding != 8) {
+                    for( int i = 0 ; i < 8 - padding; i ++ ){
+                        printf("%c",data[i]);
+                    }
+                }
+            }
+            charIndex = 0;
+        }
+    }
 }
 
 int main(int argc, char **argv)
@@ -260,7 +303,14 @@ int main(int argc, char **argv)
     // Check if algorithm to be used is default or not
     if (deafultDes)
     {
-        getDESCipher();
+        uint8_t key[8];
+
+        // Convert seed to 8 bytes
+        for (int i = 0 ; i < 8 ; i++){
+            key[i] = (uint8_t) seed[i];
+        }
+
+        getDESCipher(key);
     }else{
         //printf("[!] Using E-DES\n");
 
