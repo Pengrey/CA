@@ -290,7 +290,7 @@ void getDESCipher(uint8_t key[8])
 int main(int argc, char **argv)
 {
     char *keyFile = NULL;
-    int deafultDes = 0;
+    int defaultDes = 0;
     unsigned char seed[65];
 
     // Set Path to key file
@@ -304,14 +304,14 @@ int main(int argc, char **argv)
     // Set if algorithm to be used is DES or E-DES(default)
     if(argc == 2 && (strcmp(argv[1],"-d") == 0) || (argc == 4 && strcmp(argv[3],"-d") == 0))
     {
-        deafultDes = 1;
+        defaultDes = 1;
     }
 
     // Retrieve key digest to be used
     getKey(keyFile, seed);
 
     // Check if algorithm to be used is default or not
-    if (deafultDes)
+    if (defaultDes)
     {
         uint8_t key[8];
 
@@ -319,7 +319,7 @@ int main(int argc, char **argv)
         for (int i = 0 ; i < 8 ; i++){
             key[i] = (uint8_t) seed[i];
         }
-
+        
         getDESCipher(key);
     }else{
         //printf("[!] Using E-DES\n");
