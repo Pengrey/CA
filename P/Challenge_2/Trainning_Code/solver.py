@@ -30,7 +30,7 @@
 # where the ci are treated as known constants. Apply the Euclidean algorithm to find the greatest common divisor of these two univariate polynomials over the ring Z:
 # gcd(z**17 - c1, (z + 256**62 × t)**17 - c2) = gcd(z**17 - c1, z**17 + 256**62 × t**17 - c2)
 
-# Caluclate gdc of the two polynomials above and get a polynomial with sage math
+# The following code is based on the code from the paper "Low-Exponent RSA with Related Messages" and the code from the github repository "https://github.com/jvdsn/crypto-attacks/tree/f9bd04b8311aaed12ef807155efdcbd0230e669d/rsa-related-messages"
 from sage.all import Zmod
 from helper import fast_polynomial_gcd
 
@@ -47,4 +47,11 @@ g1 = x ** e - c1
 g2 = (x + 256**62 * t) ** e - c2
 g = -fast_polynomial_gcd(g1, g2).monic()
 
-print(int(g[0]))
+# Get the value of the plaintext
+m = int(g[0])
+
+# Remove the padding
+m = m.to_bytes((m.bit_length() + 7) // 8, 'little')
+
+# Print the flag
+print(str(m)[2:-1])
