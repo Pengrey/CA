@@ -10,13 +10,14 @@ c2 = 733064654040846249948773298873443588188260014391725012523472564529526543684
 # t = ?
 
 # Try every t from 0 to 255
+oldM = "0"
 for t in range(256):
     print(f"Trying t = {t}")
     # Create the polynomial ring over Z field
     x = Zmod(N)["x"].gen()
 
     g1 = x ** e - c1
-    g2 = (x + 256**62 * t) ** e - c2
+    g2 = (x + 256**254 * t) ** e - c2
     g = -fast_polynomial_gcd(g1, g2).monic()
 
     # Get the value of the plaintext
@@ -24,6 +25,11 @@ for t in range(256):
 
     # Remove the padding
     m = m.to_bytes((m.bit_length() + 7) // 8, 'little')
+    m = str(m)[2:-1]
 
     # Print the flag
-    print(f"Flag: {str(m)[2:-1]}")
+    if m == oldM:
+        print("Flag: Equal as previously")
+    else:
+        print(f"Flag: {m}")
+        oldM = m
