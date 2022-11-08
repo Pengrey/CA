@@ -1,5 +1,35 @@
 #!/usr/bin/env python3
 
+# Relation between m1 and m2:
+# m1 = m + 256**254 × r1
+# m2 = m + 256**254 × r2
+# m1 = m2 - 256**254 × (r2 - r1)
+
+# t will be the difference between the value of the random bit used on m1 and m2, this bit value is from 0 to 255
+
+# By using the paper "Low-Exponent RSA with Related Messages" we can try to calculate the value plaintext of the message sent
+# The paper says that we can calculate the value of the plaintext by using the following formula:
+# m1 = alpha*m2 + beta
+# m1 = m2 - 256**254 × (r2 - r1)
+# beta = 256**254 × (r2 - r1)
+# Now we suppose that the messages are encrypted under RSA with an exponent of 65537
+# We have the following expression:
+# ci = mi**65537 mod n, where i = 1,2
+#
+# Then we can calculate c1, c2, alpha and beta by using the following formula:
+# c1 = m**65537 mod n
+# c2 = (m + 256**254 × (r2 - r1))**65537 mod n
+# c2 - c1 = (m + 256**254 × (r2 - r1))**65537 - m**65537 mod n
+#
+# To simplify the calculation we can use the following formula instead:
+# Let z denote the unknown message m. Then z satisfies the following two polynomial relations:
+# z**65537 - c1 = 0 mod n
+# t = (r2 - r1)
+# (z + 256**254 × t)**65537 - c2 = 0 mod n
+#
+# where the ci are treated as known constants. Apply the Euclidean algorithm to find the greatest common divisor of these two univariate polynomials over the ring Z:
+# gcd(z**65537 - c1, (z + 256**254 × t)**65537 - c2)
+
 # The following code is based on the code from the paper "Low-Exponent RSA with Related Messages" and the code from the github repository "https://github.com/jvdsn/crypto-attacks/tree/f9bd04b8311aaed12ef807155efdcbd0230e669d/rsa-related-messages"
 from sage.all import Zmod
 from helper import fast_polynomial_gcd
@@ -11,25 +41,25 @@ c2 = 733064654040846249948773298873443588188260014391725012523472564529526543684
 
 # Try every t from 0 to 255
 oldM = "0"
-for t in range(256):
+for t in range(256, 0, -1):
     print(f"Trying t = {t}")
     # Create the polynomial ring over Z field
     x = Zmod(N)["x"].gen()
 
     g1 = x ** e - c1
-    g2 = (x + 256**254 * t) ** e - c2
+    g2 = (x + 256**254 * t)**e - c2
     g = -fast_polynomial_gcd(g1, g2).monic()
 
     # Get the value of the plaintext
     m = int(g[0])
 
-    # Remove the padding
-    m = m.to_bytes((m.bit_length() + 7) // 8, 'little')
+    # Remove the RSA padding
+    m = m.to_bytes((m.bit_length() + 7) // 8, "little")
     m = str(m)[2:-1]
 
     # Print the flag
     if m == oldM:
         print("Flag: Equal as previously")
-    else:
+    else:        
         print(f"Flag: {m}")
         oldM = m
