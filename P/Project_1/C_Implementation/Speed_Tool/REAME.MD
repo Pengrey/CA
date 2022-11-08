@@ -5,3 +5,12 @@
 chmod +x speed.sh
 ./speed.sh
 ```
+
+## Results
+```bash
+$ ./speed.sh
+E-DES enc: 0.000109
+E-DES dec: 0.000111
+DES enc: 0.000226
+DES dec: 0.000228
+```

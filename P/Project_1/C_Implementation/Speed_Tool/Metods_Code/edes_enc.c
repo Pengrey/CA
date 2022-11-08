@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include<time.h>
+#include <time.h>
 #include <openssl/sha.h>
 
 typedef unsigned char uint8_t;

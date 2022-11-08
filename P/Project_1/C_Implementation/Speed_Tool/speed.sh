@@ -3,16 +3,20 @@
 # Init times
 echo "1" > edesEncTime.txt
 echo "1" > edesDecTime.txt
+echo "1" > desEncTime.txt
+echo "1" > desDecTime.txt
 
 # Make sure the C implementations are compiled
 cc -O3 -o edes_enc ./Metods_Code/edes_enc.c -lssl -lcrypto && chmod +x edes_enc
 cc -O3 -o edes_dec ./Metods_Code/edes_dec.c -lssl -lcrypto && chmod +x edes_dec
+cc -O3 -o des_enc ./Metods_Code/des_enc.c -lssl -lcrypto -lnettle && chmod +x des_enc
+cc -O3 -o des_dec ./Metods_Code/des_dec.c -lssl -lcrypto -lnettle && chmod +x des_dec
 
 # Loop 100 000 times
-for i in {1..1000}
+for i in {1..100000}
 do
     # Get absolute value of a devision
-    j=$(( $i / 10 ))
+    j=$(( $i / 1000 ))
 
     # Do a progress bar
     printf "%-*s" $((j+1)) '[' | tr ' ' '#'
@@ -26,25 +30,43 @@ do
 
     # Run edes_dec and save the output to a file
     ./edes_dec > /dev/null 2>&1
+
+    # Run des_enc and save the output to a file
+    ./des_enc > randomValuesEnc 2>&1
+
+    # Run des_dec and save the output to a file
+    ./des_dec > /dev/null 2>&1
 done; echo
 
 # Get the smallest time for edes_enc
-minTimeEnc=$(cat edesEncTime.txt)
+minTimeedesEnc=$(cat edesEncTime.txt)
 
 # Get the smallest time for edes_dec
-minTimeDec=$(cat edesDecTime.txt)
+minTimeedesDec=$(cat edesDecTime.txt)
+
+# Get the smallest time for des_enc
+minTimedesEnc=$(cat desEncTime.txt)
+
+# Get the smallest time for des_dec
+minTimedesDec=$(cat desDecTime.txt)
 
 # Print the results
-echo "edes_enc: $minTimeEnc"
-echo "edes_dec: $minTimeDec"
+echo "E-DES enc: $minTimeedesEnc"
+echo "E-DES dec: $minTimeedesDec"
+echo "DES enc: $minTimedesEnc"
+echo "DES dec: $minTimedesDec"
 
 # Remove compiled if exists
 rm -f edes_enc
 rm -f edes_dec
+rm -f des_enc
+rm -f des_dec
 
 # Remove previous results
 rm -f edesEncTime.txt
 rm -f edesDecTime.txt
+rm -f desEncTime.txt
+rm -f desDecTime.txt
 
 # Remove the generated key
 rm -f key.bin
