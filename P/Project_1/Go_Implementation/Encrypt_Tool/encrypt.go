@@ -1,6 +1,3 @@
-// Program that can take -d as an argument or not
-// If -d is given, it will run function1, else it will run function2
-
 package main
 
 import (

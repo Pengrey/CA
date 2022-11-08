@@ -120,11 +120,11 @@ func feistalIter(firstSlice [4]uint8, secondSlice [4]uint8, sbox [256]uint8) ([4
 	return firstSlice, secondSlice
 }
 
-func applyPermutation(firstSlice [4]uint8, secondSlice [4]uint8, SBox [16][256]uint8) ([4]uint8, [4]uint8) {
+func reversePermutations(firstSlice [4]uint8, secondSlice [4]uint8, SBox [16][256]uint8) ([4]uint8, [4]uint8) {
 	NUM_ITERATIONS := 16
 
-	for i := 0; i < NUM_ITERATIONS; i++ {
-		firstSlice, secondSlice = feistalIter(firstSlice, secondSlice, SBox[i])
+	for i := NUM_ITERATIONS - 1; i >= 0; i-- {
+		secondSlice, firstSlice = feistalIter(secondSlice, firstSlice, SBox[i])
 	}
 
 	return firstSlice, secondSlice
@@ -132,7 +132,7 @@ func applyPermutation(firstSlice [4]uint8, secondSlice [4]uint8, SBox [16][256]u
 
 func getCipherBlock(firstSlice [4]uint8, secondSlice [4]uint8, SBox [16][256]uint8) {
 	// Apply permutation
-	firstSlice, secondSlice = applyPermutation(firstSlice, secondSlice, SBox)
+	firstSlice, secondSlice = reversePermutations(firstSlice, secondSlice, SBox)
 
 	// Print Ciphertext
 	for i := 0; i < 4; i++ {
@@ -176,7 +176,7 @@ func main() {
 	seed := strings.ToUpper(getKey("key.bin"))
 
 	// Read 4KB data from file
-	data, err := ioutil.ReadFile("randomValues")
+	data, err := ioutil.ReadFile("randomValuesEnc")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -214,7 +214,7 @@ func main() {
 	elapsed := time.Since(start)
 
 	// Read the time taken to encrypt from the file edesEncTime.txt
-	file, err := ioutil.ReadFile("edesEncTime.txt")
+	file, err := ioutil.ReadFile("edesDecTime.txt")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -224,6 +224,6 @@ func main() {
 
 	// Save the time taken to encrypt if it is less than the time taken to encrypt in the previous run
 	if float64(elapsed.Seconds()) < encTime {
-		ioutil.WriteFile("edesEncTime.txt", []byte(strconv.FormatFloat(float64(elapsed.Seconds()), 'f', 6, 64)), 0644)
+		ioutil.WriteFile("edesDecTime.txt", []byte(strconv.FormatFloat(float64(elapsed.Seconds()), 'f', 6, 64)), 0644)
 	}
 }
