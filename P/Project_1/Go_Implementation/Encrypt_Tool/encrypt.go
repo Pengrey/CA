@@ -141,7 +141,6 @@ func getCipherBlock(firstSlice [4]uint8, secondSlice [4]uint8, SBox [16][256]uin
 	for i := 0; i < 4; i++ {
 		// print in ascii format
 		fmt.Printf("%c", firstSlice[i])
-		fmt.Printf("%c", firstSlice[i])
 	}
 
 	for i := 0; i < 4; i++ {

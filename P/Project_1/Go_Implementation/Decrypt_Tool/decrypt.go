@@ -179,7 +179,7 @@ func getCiphertext(SBox [16][256]uint8) {
 	}
 }
 
-func getDESBlock(key string, data [8]uint8) [8]uint8 {
+func getDESBlock(key string, data [8]uint8) {
 	// Convert key to byte array
 	keyBytes := []byte(key)
 
@@ -198,13 +198,8 @@ func getDESBlock(key string, data [8]uint8) [8]uint8 {
 	// Decrypt data
 	c.Decrypt(decrypted, dataBytes)
 
-	// Convert byte array to [8]uint8
-	var result [8]uint8
-	for i := 0; i < 8; i++ {
-		result[i] = decrypted[i]
-	}
-
-	return result
+	// Print encrypted data
+	fmt.Printf("%s", decrypted)
 }
 
 func getDESCipher(key string) {
@@ -227,13 +222,10 @@ func getDESCipher(key string) {
 		data[charIndex] = uint8(c)
 
 		charIndex++
-		// When we have full block we cipher them and we reset the clock
-		if charIndex == 8 {
-			data = getDESBlock(key, data)
 
-			for i := 0; i < 8; i++ {
-				fmt.Printf("%c", data[i])
-			}
+		// If 8 characters have been read, decrypt them
+		if charIndex == 8 {
+			getDESBlock(key, data)
 			charIndex = 0
 		}
 	}
