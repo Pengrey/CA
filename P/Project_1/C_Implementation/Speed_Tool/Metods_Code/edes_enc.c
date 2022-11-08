@@ -255,9 +255,29 @@ int main(int argc, char *argv[])
     // Save time taken to encrypt in a file
     double time_taken = ((double) (end - start)) / CLOCKS_PER_SEC;
 
-    // Write time taken to encrypt to a file append mode
-    FILE *fp;
-    fp = fopen("edesEncTime.txt", "a");
-    fprintf(fp, "%f\n", time_taken);
+    // Read the time taken to encrypt from the file
+    FILE *fp = fopen("edesEncTime.txt", "r");
+    // Handle error if file is not found
+    if (fp == NULL) {
+        printf("Error opening file!\n");
+        exit(1);
+    }
+
+    double time_taken2;
+
+    // Check fscanf() return value
+    if (fscanf(fp, "%lf", &time_taken2) != 1) {
+        printf("Error reading file!\n");
+        exit(1);
+    }
+
+
     fclose(fp);
+
+    // Print the time taken to encrypt if it is less than the time taken to encrypt in the previous run
+    if (time_taken < time_taken2) {
+        fp = fopen("edesEncTime.txt", "w");
+        fprintf(fp, "%lf", time_taken);
+        fclose(fp);
+    }
 }
