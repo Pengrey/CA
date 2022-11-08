@@ -13,10 +13,10 @@ go build -o des_enc ./Metods_Code/des_enc.go && chmod +x des_enc
 go build -o des_dec ./Metods_Code/des_dec.go && chmod +x des_dec
 
 # Loop 100 000 times
-for i in {1..100}
+for i in {1..100000}
 do
     # Get absolute value of a devision
-    j=$(( $i / 1 ))
+    j=$(( $i / 1000 ))
 
     # Do a progress bar
     printf "%-*s" $((j+1)) '[' | tr ' ' '#'

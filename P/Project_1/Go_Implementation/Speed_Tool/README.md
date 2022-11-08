@@ -9,4 +9,8 @@ chmod +x speed.sh
 ## Results
 ```bash
 $ ./speed.sh
+E-DES enc: 0.008694
+E-DES dec: 0.005131
+DES enc: 0.002090
+DES dec: 0.001399
 ```
