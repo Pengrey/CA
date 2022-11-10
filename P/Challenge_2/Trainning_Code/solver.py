@@ -53,5 +53,10 @@ m = int(g[0])
 # Remove the padding
 m = m.to_bytes((m.bit_length() + 7) // 8, 'little')
 
-# Print the flag
-print(str(m)[2:-1])
+# Remove random bit at the end of the message
+m = m[:-1]
+
+# Convert to ascii
+m = m.decode('ascii')
+
+print("Flag:", m)
