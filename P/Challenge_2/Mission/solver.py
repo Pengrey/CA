@@ -41,9 +41,9 @@ c2 = 733064654040846249948773298873443588188260014391725012523472564529526543684
 # t is the difference between the value of the random bit used on m1 and m2, this bit value is from 0 to 255
 # The value of t is unknown, so we we need to bruteforce it to find the value of the plaintext
 
-# We try every possible position for the random bit
-for p in range(256, 0, -1):
-    print("Trying position = {}".format(p), end="\r")
+# We try every possible value of t from -255 to 255
+for t in range(-255, 256):
+    print("Trying t = {}".format(t), end="\r")
     # We calculate the value of the plaintext by using the formula from the paper
     # We use the function fast_polynomial_gcd to calculate the gcd of the two polynomials
     # The function fast_polynomial_gcd is based on the code from the github repository "https://github.com/jvdsn/crypto-attacks"
@@ -53,7 +53,7 @@ for p in range(256, 0, -1):
 
     # Create the two polynomials
     p1 = x**e - c1
-    p2 = (x + p**254)**e - c2
+    p2 = (x + 256**254 * t)**e - c2
     # Calculate the gcd of the two polynomials
     gcd = -fast_polynomial_gcd(p1, p2).monic()
 
