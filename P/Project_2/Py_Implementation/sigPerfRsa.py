@@ -53,7 +53,7 @@ def main():
     # Read the private keys from the files
     keys = []
     for sizeB in [1024, 2048, 4096]:
-        with open(f"./keys/key_{sizeB}.pem", "rb") as key_file:
+        with open(f"./../Key_Generator/keys/key_{sizeB}.pem", "rb") as key_file:
             keys.append(serialization.load_pem_private_key(
             key_file.read(),
             password=None,
