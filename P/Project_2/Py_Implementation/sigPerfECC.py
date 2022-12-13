@@ -1,20 +1,21 @@
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import serialization
+from cryptography.hazmat.primitives.asymmetric import utils
 import os
 import time
 
-def signAndVerify(data, key):
+def signAndVerify(digest, chosen_hash, key):
     signature = key.sign(
-        data,
-        ec.ECDSA(hashes.SHA256())
+        digest,
+        ec.ECDSA(utils.Prehashed(chosen_hash))
     )
 
     # Verify the signature
     key.public_key().verify(
         signature,
-        data,
-        ec.ECDSA(hashes.SHA256())
+        digest,
+        ec.ECDSA(utils.Prehashed(chosen_hash))
     )
 
 def getPerf(keys):
@@ -24,18 +25,28 @@ def getPerf(keys):
     # Execute the operation a certain number of times
     mtimes = 1000
 
+    # Hash to be used
+    chosen_hash = hashes.SHA256()
+
     for key in keys:
         # Generate random data to sign
         data = os.urandom(1024)
 
+        # Set hasher 
+        hasher = hashes.Hash(chosen_hash)
+
+        # Generate the digest
+        hasher.update(data)
+        digest = hasher.finalize()
+
         # Keep track of the quickest time observed
         min_time = float("inf")
 
-        for i in range(niterations):
+        for n in range(niterations):
             # Measure the time it takes to execute the consecutive operations
             start = time.time()
-            for j in range(mtimes):
-                signAndVerify(data, key)
+            for m in range(mtimes):
+                signAndVerify(digest, chosen_hash, key)
             elapsed = time.time() - start
             
             # Update the minimum time observed
