@@ -44,10 +44,10 @@ def getPerf(keys, padng):
         # Keep track of the quickest time observed
         min_time = float("inf")
 
-        for i in range(niterations):
+        for n in range(niterations):
             # Measure the time it takes to execute the consecutive operations
             start = time.time()
-            for j in range(mtimes):
+            for m in range(mtimes):
                 signAndVerify(digest, key, padng, chosen_hash)
             elapsed = time.time() - start
             
