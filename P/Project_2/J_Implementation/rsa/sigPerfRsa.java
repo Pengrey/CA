@@ -1,10 +1,13 @@
 package rsa;
 
 import java.security.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
 
 public class sigPerfRsa {
     // function that signs and verifies a message using the RSA algorithm by given hash and keys, while using the PSS padding
-    public static void signAndVerifyPSS(byte[] hash, KeyPair keyPair) throws Exception {
+    public static List<Long> signAndVerifyPSS(byte[] hash, KeyPair keyPair, Integer mtimes) throws Exception {
         // get the private key
         PrivateKey privateKey = keyPair.getPrivate();
         // get the public key
@@ -14,14 +17,33 @@ public class sigPerfRsa {
         signature.initSign(privateKey);
         signature.update(hash);
         byte[] sig = signature.sign();
+
+        // Measure the time it takes to execute the consecutive operations
+        long startTime = System.nanoTime();
+        // For each time
+        for (int k = 0; k < mtimes; k++) {
+            sig = signature.sign();
+        }
+        long signTime = System.nanoTime() - startTime;
+
         // verify the signature
         signature.initVerify(publicKey);
         signature.update(hash);
-        boolean verified = signature.verify(sig);
+        startTime = System.nanoTime();
+        // For each time
+        for (int k = 0; k < mtimes; k++) {
+            boolean verified = signature.verify(sig);
+        }
+        long verifyTime = System.nanoTime() - startTime;
+
+        List<Long> results = new ArrayList<>();
+        results.add(signTime);
+        results.add(verifyTime);
+        return  results;
     }
 
     // function that signs and verifies a message using the RSA algorithm by given hash and keys, while using the PKCS1 padding
-    public static void signAndVerifyPKCS1(byte[] hash, KeyPair keyPair) throws Exception {
+    public static List<Long> signAndVerifyPKCS1(byte[] hash, KeyPair keyPair, Integer mtimes) throws Exception {
         // get the private key
         PrivateKey privateKey = keyPair.getPrivate();
         // get the public key
@@ -31,10 +53,29 @@ public class sigPerfRsa {
         signature.initSign(privateKey);
         signature.update(hash);
         byte[] sig = signature.sign();
+
+        // Measure the time it takes to execute the consecutive operations
+        long startTime = System.nanoTime();
+        // For each time
+        for (int k = 0; k < mtimes; k++) {
+            sig = signature.sign();
+        }
+        long signTime = System.nanoTime() - startTime;
+
         // verify the signature
         signature.initVerify(publicKey);
         signature.update(hash);
-        boolean verified = signature.verify(sig);
+        startTime = System.nanoTime();
+        // For each time
+        for (int k = 0; k < mtimes; k++) {
+            boolean verified = signature.verify(sig);
+        }
+        long verifyTime = System.nanoTime() - startTime;
+
+        List<Long> results = new ArrayList<>();
+        results.add(signTime);
+        results.add(verifyTime);
+        return  results;
     }
 
     // function that, given keys and the type of padding to use, generates random messages, hashes them and signs and verifies them with the given padding type
@@ -60,40 +101,47 @@ public class sigPerfRsa {
             byte[] hash = digest.digest(data);
 
             // Keep track of the quickest time observed
-            long quickestTime = Long.MAX_VALUE;
+            long minSignTime = Long.MAX_VALUE;
+            long minVerifyTime = Long.MAX_VALUE;
 
             // For each iteration
             for (int j = 0; j < niterations; j++) {
-                // Measure the time it takes to execute the consecutive operations
-                long startTime = System.nanoTime();
-
-                // For each time
-                for (int k = 0; k < mtimes; k++) {
+                if (padding.equals("PSS")) {
                     // Sign and verify the hash
-                    if (padding.equals("PSS")) {
-                        signAndVerifyPSS(hash, Keys[i]);
-                    } else if (padding.equals("PKCS1")) {
-                        signAndVerifyPKCS1(hash, Keys[i]);
+                    List<Long> results = signAndVerifyPSS(hash, Keys[i], mtimes);
+                    long signTime = results.get(0);
+                    long verifyTime = results.get(1);
+
+                    // Update the minimum time
+                    if (signTime < minSignTime) {
+                        minSignTime = signTime;
+                    }
+                    if (verifyTime < minVerifyTime) {
+                        minVerifyTime = verifyTime;
+                    }
+                } else if (padding.equals("PKCS1")) {
+                    // Sign and verify the hash
+                    List<Long> results = signAndVerifyPKCS1(hash, Keys[i], mtimes);
+                    long signTime = results.get(0);
+                    long verifyTime = results.get(1);
+
+                    // Update the minimum time
+                    if (signTime < minSignTime) {
+                        minSignTime = signTime;
+                    }
+                    if (verifyTime < minVerifyTime) {
+                        minVerifyTime = verifyTime;
                     }
                 }
-
-                // Measure the time it takes to execute the consecutive operations
-                long endTime = System.nanoTime();
-
-                // Calculate the time it took to execute the operations
-                long duration = (endTime - startTime);
-
-                // If the time it took to execute the operations is quicker than the quickest time observed
-                if (duration < quickestTime) {
-                    // Update the quickest time observed
-                    quickestTime = duration;
-                }
             }
-
             // Calculate the time each operation takes
-            double timePerOperation = (double) quickestTime / (double) mtimes;
-            // Print the time each operation takes
-            System.out.println("Key: " + keySizes[i] + ", Padding: " + padding + ", Time: " + timePerOperation);
+            long signTime = minSignTime / mtimes;
+            long verifyTime = minVerifyTime / mtimes;
+
+            // Convert the time to seconds
+            double signTimeSec = signTime / 1000000000.0;
+            double verifyTimeSec = verifyTime / 1000000000.0;
+            System.out.println("Key: " + keySizes[i] + ", Padding: " + padding + ", Sign: " + String.format(Locale.US, "%.6f", signTimeSec) + ", Verify: " + String.format(Locale.US, "%.6f", verifyTimeSec));
         }
     }
 
