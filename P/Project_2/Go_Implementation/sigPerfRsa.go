@@ -51,32 +51,62 @@ func readPrivateKeys() []*rsa.PrivateKey {
 	return privateKeys
 }
 
-func signAndVerifyPSS(digest []byte, privateKey *rsa.PrivateKey) {
+func signAndVerifyPSS(digest []byte, privateKey *rsa.PrivateKey, mtimes int) (float64, float64) {
+	signature := make([]byte, 0)
+	err := error(nil)
+
 	// Sign the data
-	signature, err := rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, digest, nil)
-	if err != nil {
-		log.Fatal(err)
+	start := time.Now()
+	for m := 0; m < mtimes; m++ {
+		signature, err = rsa.SignPSS(rand.Reader, privateKey, crypto.SHA256, digest, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+	end := time.Now()
+	signTime := end.Sub(start).Seconds()
 
 	// Verify the signature
-	err = rsa.VerifyPSS(&privateKey.PublicKey, crypto.SHA256, digest, signature, nil)
-	if err != nil {
-		log.Fatal(err)
+	start = time.Now()
+	for m := 0; m < mtimes; m++ {
+		err = rsa.VerifyPSS(&privateKey.PublicKey, crypto.SHA256, digest, signature, nil)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+	end = time.Now()
+	vrfyTime := end.Sub(start).Seconds()
+
+	return signTime, vrfyTime
 }
 
-func signAndVerifyPKCS1(digest []byte, privateKey *rsa.PrivateKey) {
+func signAndVerifyPKCS1(digest []byte, privateKey *rsa.PrivateKey, mtimes int) (float64, float64) {
+	signature := make([]byte, 0)
+	err := error(nil)
+
 	// Sign the data
-	signature, err := rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, digest)
-	if err != nil {
-		log.Fatal(err)
+	start := time.Now()
+	for m := 0; m < mtimes; m++ {
+		signature, err = rsa.SignPKCS1v15(rand.Reader, privateKey, crypto.SHA256, digest)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+	end := time.Now()
+	signTime := end.Sub(start).Seconds()
 
 	// Verify the signature
-	err = rsa.VerifyPKCS1v15(&privateKey.PublicKey, crypto.SHA256, digest, signature)
-	if err != nil {
-		log.Fatal(err)
+	start = time.Now()
+	for m := 0; m < mtimes; m++ {
+		err := rsa.VerifyPKCS1v15(&privateKey.PublicKey, crypto.SHA256, digest, signature)
+		if err != nil {
+			log.Fatal(err)
+		}
 	}
+	end = time.Now()
+	vrfyTime := end.Sub(start).Seconds()
+
+	return signTime, vrfyTime
 }
 
 // Function receives a private key and returns the performance of PKCS #1 v1.5 padding
@@ -107,26 +137,28 @@ func getPerfPKCS1(privateKeys []*rsa.PrivateKey) {
 		digest := hash.Sum(nil)
 
 		// Keep track of the quickest time observed to a big number
-		quickestTime := 9999.0
+		minSignTime := 9999.0
+		minVrfyTime := 9999.0
 
 		for n := 0; n < niterations; n++ {
-			// Measure the time it takes to execute the consecutive operations
-			start := time.Now()
-			for m := 0; m < mtimes; m++ {
-				// Sign and verify data
-				signAndVerifyPKCS1(digest, privateKeys[key])
-			}
-			elapsed := time.Since(start)
+			// Sign and verify data
+			signTime, vrfyTime := signAndVerifyPKCS1(digest, privateKeys[key], mtimes)
 
 			// Update the minimum time observed
-			if elapsed.Seconds() < quickestTime {
-				quickestTime = elapsed.Seconds()
+			if signTime < minSignTime {
+				minSignTime = signTime
+			}
+			if vrfyTime < minVrfyTime {
+				minVrfyTime = vrfyTime
 			}
 		}
 
 		// Calculate the time each operation takes
-		operationTime := quickestTime / float64(mtimes)
-		fmt.Printf("Key: %d, Padding: %s, Time: %f\n", keysizes[key], "PKCS1", operationTime)
+		signTime := minSignTime / float64(mtimes)
+		vrfyTime := minVrfyTime / float64(mtimes)
+
+		// Print the results
+		fmt.Printf("Key: %d, Padding: %s, Sign: %f, Verify: %f\n", keysizes[key], "PKCS1", signTime, vrfyTime)
 	}
 }
 
@@ -158,26 +190,28 @@ func getPerfPSS(privateKeys []*rsa.PrivateKey) {
 		digest := hash.Sum(nil)
 
 		// Keep track of the quickest time observed to a big number
-		quickestTime := 9999.0
+		minSignTime := 9999.0
+		minVrfyTime := 9999.0
 
 		for n := 0; n < niterations; n++ {
-			// Measure the time it takes to execute the consecutive operations
-			start := time.Now()
-			for m := 0; m < mtimes; m++ {
-				// Sign and verify data
-				signAndVerifyPSS(digest, privateKeys[key])
-			}
-			elapsed := time.Since(start)
+			// Sign and verify data
+			signTime, vrfyTime := signAndVerifyPSS(digest, privateKeys[key], mtimes)
 
 			// Update the minimum time observed
-			if elapsed.Seconds() < quickestTime {
-				quickestTime = elapsed.Seconds()
+			if signTime < minSignTime {
+				minSignTime = signTime
+			}
+			if vrfyTime < minVrfyTime {
+				minVrfyTime = vrfyTime
 			}
 		}
 
 		// Calculate the time each operation takes
-		operationTime := quickestTime / float64(mtimes)
-		fmt.Printf("Key: %d, Padding: %s, Time: %f\n", keysizes[key], "PSS", operationTime)
+		signTime := minSignTime / float64(mtimes)
+		vrfyTime := minVrfyTime / float64(mtimes)
+
+		// Print the results
+		fmt.Printf("Key: %d, Padding: %s, Sign: %f, Verify: %f\n", keysizes[key], "PSS", signTime, vrfyTime)
 	}
 }
 
