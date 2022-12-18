@@ -5,18 +5,27 @@ from cryptography.hazmat.primitives.asymmetric import utils
 import os
 import time
 
-def signAndVerify(digest, chosen_hash, key):
-    signature = key.sign(
-        digest,
-        ec.ECDSA(utils.Prehashed(chosen_hash))
-    )
+def signAndVerify(digest, chosen_hash, key, mtimes):
+    # Measure the time it takes to execute the consecutive operations
+    start = time.time()
+    for m in range(mtimes):
+        signature = key.sign(
+            digest,
+            ec.ECDSA(utils.Prehashed(chosen_hash))
+        )
+    signTime = time.time() - start
 
     # Verify the signature
-    key.public_key().verify(
-        signature,
-        digest,
-        ec.ECDSA(utils.Prehashed(chosen_hash))
-    )
+    start = time.time()
+    for m in range(mtimes):
+        key.public_key().verify(
+            signature,
+            digest,
+            ec.ECDSA(utils.Prehashed(chosen_hash))
+        )
+    vrfyTime = time.time() - start
+
+    return signTime, vrfyTime
 
 def getPerf(keys):
     # Perform a loop with a certain number of iterations
@@ -40,21 +49,20 @@ def getPerf(keys):
         digest = hasher.finalize()
 
         # Keep track of the quickest time observed
-        min_time = float("inf")
+        minSignTime = float("inf")
+        minVrfyTime = float("inf")
 
         for n in range(niterations):
-            # Measure the time it takes to execute the consecutive operations
-            start = time.time()
-            for m in range(mtimes):
-                signAndVerify(digest, chosen_hash, key)
-            elapsed = time.time() - start
+            signTime, vrfyTime = signAndVerify(digest, chosen_hash, key, mtimes)
             
             # Update the minimum time observed
-            min_time = min(min_time, elapsed)
+            minSignTime = min(minSignTime, signTime)
+            minVrfyTime = min(minVrfyTime, vrfyTime)
 
         # Calculate the time each operation takes
-        time_per_operation = min_time / mtimes
-        print("Curve: %s, Key: %d, Time: %f" % (key.curve.name, key.key_size, time_per_operation))
+        time_per_sign_operation = minSignTime / mtimes
+        time_per_vrfy_operation = minVrfyTime / mtimes
+        print("Curve: %s, Key: %d, Sign: %f, Vrfy: %f" % (key.curve.name, key.key_size, time_per_sign_operation, time_per_vrfy_operation))
 
 def main():
     # Load the private keys

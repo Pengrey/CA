@@ -5,20 +5,29 @@ from cryptography.hazmat.primitives.asymmetric import utils
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives import hashes
 
-def signAndVerify(digest, key, padding, chosen_hash):
-    signature = key.sign(
-        digest,
-        padding,
-        utils.Prehashed(chosen_hash)
-    )
+def signAndVerify(digest, key, padding, chosen_hash, mtimes):
+    # Measure the time it takes to execute the consecutive operations
+    start = time.time()
+    for m in range(mtimes):
+        signature = key.sign(
+            digest,
+            padding,
+            utils.Prehashed(chosen_hash)
+        )
+    signTime = time.time() - start
 
     # Verify the signature
-    key.public_key().verify(
-        signature,
-        digest,
-        padding,
-        utils.Prehashed(chosen_hash)
-    )
+    start = time.time()
+    for m in range(mtimes):
+        key.public_key().verify(
+            signature,
+            digest,
+            padding,
+            utils.Prehashed(chosen_hash)
+        )
+    vrfyTime = time.time() - start
+
+    return signTime, vrfyTime
 
 def getPerf(keys, padng):
     # Perform a loop with a certain number of iterations
@@ -42,21 +51,20 @@ def getPerf(keys, padng):
         digest = hasher.finalize()
 
         # Keep track of the quickest time observed
-        min_time = float("inf")
+        minSignTime = float("inf")
+        minVrfyTime = float("inf")
 
         for n in range(niterations):
-            # Measure the time it takes to execute the consecutive operations
-            start = time.time()
-            for m in range(mtimes):
-                signAndVerify(digest, key, padng, chosen_hash)
-            elapsed = time.time() - start
+            signTime, vrfyTime = signAndVerify(digest, key, padng, chosen_hash, mtimes)
             
             # Update the minimum time observed
-            min_time = min(min_time, elapsed)
+            minSignTime = min(minSignTime, signTime)
+            minVrfyTime = min(minVrfyTime, vrfyTime)
 
         # Calculate the time each operation takes
-        time_per_operation = min_time / mtimes
-        print("Key: %d, Padding: %s, Time: %f" % (key.key_size, padng.name.replace("EMSA-", "").replace("-v1_5", ""), time_per_operation))
+        time_per_sign_operation = minSignTime / mtimes
+        time_per_vrfy_operation = minVrfyTime / mtimes
+        print("Key: %d, Padding: %s, Sign: %f, Vrfy: %f" % (key.key_size, padng.name.replace("EMSA-", "").replace("-v1_5", ""), time_per_sign_operation, time_per_vrfy_operation))
 
 
 def main():
