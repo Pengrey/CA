@@ -2,63 +2,75 @@ package main
 
 import (
 	"crypto/ecdsa"
-	"crypto/x509"
-	"encoding/pem"
-	"errors"
+	"crypto/elliptic"
+	"crypto/rand"
+	"crypto/sha256"
 	"fmt"
-	"io/ioutil"
-	"log"
+	"time"
 )
 
-func readPrivateKey(filepath string) (*ecdsa.PrivateKey, error) {
-	data, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return nil, err
-	}
+func signAndVerify(digest []byte, key *ecdsa.PrivateKey) {
+	// Sign
+	r, s, _ := ecdsa.Sign(rand.Reader, key, digest)
 
-	block, _ := pem.Decode(data)
-	if block == nil {
-		return nil, errors.New("failed to decode PEM block containing the key")
-	}
-
-	privateKey, err := x509.ParseECPrivateKey(block.Bytes)
-	if err != nil {
-		return nil, err
-	}
-
-	return privateKey, nil
+	// Verify
+	ecdsa.Verify(&key.PublicKey, digest, r, s)
 }
 
-// readPrivateKeys reads the private keys from the files and returns a slice of private keys
-func readPrivateKeys() []*ecdsa.PrivateKey {
-	// Create a slice of private keys
-	var privateKeys []*ecdsa.PrivateKey
+func getPerf(keys []*ecdsa.PrivateKey) {
+	// Perform a loop with a certain number of iterations
+	niterations := 10
 
-	// Slice of file names
-	fileNames := []string{"key_secp192r1.pem", "key_secp256r1.pem", "key_secp521r1.pem", "key_sect163k1.pem", "key_sect283k1.pem", "key_sect571k1.pem", "key_sect163r2.pem", "key_sect283r1.pem", "key_sect571r1.pem"}
+	// Execute the operation a certain number of times
+	mtimes := 1000
 
-	// Read the private keys from the files and store them in the slice
-	for _, fileName := range fileNames {
-		// Read the private key
-		privateKey, err := readPrivateKey("./../Key_Generator/keys/" + fileName)
-		if err != nil {
-			log.Fatal(err)
+	for k := range keys {
+		// Generate random data to sign
+		data := make([]byte, 1024)
+		rand.Read(data)
+
+		// Generate the digest
+		digest := sha256.Sum256(data)
+
+		// Keep track of the quickest time observed
+		quickest := 1000000000.0
+
+		// Execute the operation a certain number of times
+		for n := 0; n < niterations; n++ {
+			// Measure the time it takes to execute the consecutive operations
+			start := time.Now()
+			for m := 0; m < mtimes; m++ {
+				signAndVerify(digest[:], keys[k])
+			}
+			elapsed := time.Since(start)
+
+			// Update the minimum time observed
+			if elapsed.Seconds() < quickest {
+				quickest = elapsed.Seconds()
+			}
 		}
 
-		// Append the private key to the slice
-		privateKeys = append(privateKeys, privateKey)
+		// Calculate the time each operation takes
+		elapsed := quickest / float64(mtimes)
+		fmt.Printf("Curve: %s, Key size: %d, Time: %f \n", keys[k].Params().Name, keys[k].Params().BitSize, elapsed)
 	}
-
-	return privateKeys
 }
 
 func main() {
-	// Read the private keys
-	privateKeys := readPrivateKeys()
-
-	// Print the keys
-	for _, privateKey := range privateKeys {
-		fmt.Println(privateKey)
+	// Load the private keys
+	eccList := []elliptic.Curve{
+		elliptic.P224(),
+		elliptic.P256(),
+		elliptic.P384(),
+		elliptic.P521(),
 	}
+
+	eccKeys := make([]*ecdsa.PrivateKey, len(eccList))
+	for i, curve := range eccList {
+		eccKeys[i], _ = ecdsa.GenerateKey(curve, rand.Reader)
+	}
+
+	// Get performance
+	getPerf(eccKeys)
 
 }
