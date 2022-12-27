@@ -1,5 +1,7 @@
 package rsa;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 import java.security.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +15,7 @@ public class sigPerfRsa {
         // get the public key
         PublicKey publicKey = keyPair.getPublic();
         // get the signature
-        Signature signature = Signature.getInstance("SHA256withRSA");
+        Signature signature = Signature.getInstance("SHA384withRSAandMGF1", "BC");
         signature.initSign(privateKey);
         signature.update(hash);
         byte[] sig = signature.sign();
@@ -49,7 +51,7 @@ public class sigPerfRsa {
         // get the public key
         PublicKey publicKey = keyPair.getPublic();
         // get the signature
-        Signature signature = Signature.getInstance("SHA256withRSA");
+        Signature signature = Signature.getInstance("SHA384withRSA", "BC");
         signature.initSign(privateKey);
         signature.update(hash);
         byte[] sig = signature.sign();
@@ -149,9 +151,10 @@ public class sigPerfRsa {
         // Generate key pairs
         String[] keySizes = {"1024", "2048", "4096"};
         KeyPair[] Keys = new KeyPair[keySizes.length];
+        Security.addProvider(new BouncyCastleProvider());
         for (int i = 0; i < keySizes.length; i++) {
             // Generate a key pair
-            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+            KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA", "BC");
             keyGen.initialize(Integer.parseInt(keySizes[i]));
             KeyPair keyPair = keyGen.generateKeyPair();
 
