@@ -86,7 +86,7 @@ public class sigPerfRsa {
         String[] keySizes = {"1024", "2048", "4096"};
 
         // Perform a loop with a certain number of iterations
-        Integer niterations = 10;
+        Integer niterations = 100;
 
         // Execute the operation a certain number of times
         Integer mtimes = 1000;

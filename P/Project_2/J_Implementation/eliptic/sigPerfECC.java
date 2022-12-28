@@ -49,7 +49,7 @@ public class sigPerfECC {
     // function that, given keys, generates random messages, hashes them and signs and verifies them
     public static void getPerf(KeyPair[] Keys) throws Exception {
         // Perform a loop with a certain number of iterations
-        Integer niterations = 10;
+        Integer niterations = 100;
 
         // Execute the operation a certain number of times
         Integer mtimes = 1000;
