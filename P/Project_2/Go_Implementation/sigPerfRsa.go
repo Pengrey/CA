@@ -115,7 +115,7 @@ func getPerfPKCS1(privateKeys []*rsa.PrivateKey) {
 	keysizes := []int{1024, 2048, 4096}
 
 	// Perform a loop with a certain number of iterations
-	niterations := 10
+	niterations := 100
 
 	// Execute the operation a certain number of times
 	mtimes := 1000
@@ -168,7 +168,7 @@ func getPerfPSS(privateKeys []*rsa.PrivateKey) {
 	keysizes := []int{1024, 2048, 4096}
 
 	// Perform a loop with a certain number of iterations
-	niterations := 10
+	niterations := 100
 
 	// Execute the operation a certain number of times
 	mtimes := 1000

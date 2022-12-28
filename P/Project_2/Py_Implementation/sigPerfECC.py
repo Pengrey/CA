@@ -29,7 +29,7 @@ def signAndVerify(digest, chosen_hash, key, mtimes):
 
 def getPerf(keys):
     # Perform a loop with a certain number of iterations
-    niterations = 10
+    niterations = 100
 
     # Execute the operation a certain number of times
     mtimes = 1000
